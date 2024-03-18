@@ -35,7 +35,7 @@ def ping_all_hosts(inventory):
         name="Ping all hosts",
         action=dict(module="ping", args=""),
         hosts='all',
-        roles=['common']
+        roles=[],
     )
     task_queue_manager.run([ping_task])
 
