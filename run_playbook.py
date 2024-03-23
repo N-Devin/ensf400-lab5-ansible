@@ -1,29 +1,18 @@
-import subprocess
+import ansible_runner
 
-# Set ANSIBLE_CONFIG environment variable
-ansible_config_path = "$(pwd)/ansible.cfg"
-subprocess.run(["export", f"ANSIBLE_CONFIG={ansible_config_path}"], shell=True)
+playbook_path = "./hello.yml"
+inventory_file = "./hosts.yml"
 
-# List hosts using ansible command
-list_hosts_command = ["ansible", "all:localhost", "--list-hosts"]
-list_hosts_output = subprocess.run(list_hosts_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+# Run the playbook
+runner = ansible_runner.run(private_data_dir='.', playbook=playbook_path, inventory=inventory_file)
 
-# Print the output of listing hosts
-print("Listing Hosts:")
-print(list_hosts_output.stdout.strip())
+# Print playbook execution results
+print("\n================Playbook Results========== \n")
+print(runner.stats)
 
-# Ping hosts using ansible command
-ping_command = ["ansible", "all:localhost", "-m", "ping"]
-ping_output = subprocess.run(ping_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+# Print playbook events
+print("\n===========Events ===============\n")
+for event in runner.events:
+    print(event['event'])
 
-# Print the output of pinging hosts
-print("\nPinging Hosts:")
-print(ping_output.stdout.strip())
 
-# Run the playbook using ansible-playbook command
-playbook_command = ["ansible-playbook", "hello.yml"]
-playbook_output = subprocess.run(playbook_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-
-# Print the output of running the playbook
-print("\nRunning Playbook:")
-print(playbook_output.stdout.strip())

@@ -1,8 +1,0 @@
-FROM alpine:latest
-
-RUN apk --no-cache add nginx
-COPY nginx.cfg /etc/nginx/nginx.cfg
-
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]

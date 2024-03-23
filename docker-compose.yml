@@ -41,8 +41,8 @@ services:
       - ./secrets/id_rsa_container.pub:/root/.ssh/authorized_keys
 
   loadbalancer:
-    build:
-      context: .
-      dockerfile: dockerFile
+    image: nginx:latest
     ports:
       - "80:80"
+    volumes:
+     - ./nginx.cfg:/etc/nginx/nginx.cfg:ro

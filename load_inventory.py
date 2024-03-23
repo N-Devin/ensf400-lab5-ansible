@@ -1,47 +1,21 @@
-from ansible.inventory.manager import InventoryManager
-from ansible.parsing.dataloader import DataLoader
-from ansible.executor.task_queue_manager import TaskQueueManager
-from ansible.vars.manager import VariableManager
-from ansible.plugins.callback import CallbackBase
+import ansible_runner
+import yaml
+import os
+
+os.environ['ANSIBLE_CONFIG'] = os.path.join(os.getcwd(), 'ansible.cfg')
 
 
-class ResultCallback(CallbackBase):
-    def v2_runner_on_ok(self, result, **kwargs):
-        host = result._host.get_name()
-        ip = result._host.get_vars().get('ansible_host', 'N/A')
-        groups = ', '.join(result._host.get_groups())
-        print(f"Host: {host}, IP: {ip}, Groups: {groups}")
-        print(f"Ping result: {result._result.get('ping')}")
+# Load inventory using Python code and print host information
+with open("hosts.yml") as host_file: 
+    inventory_file = yaml.full_load(host_file) 
+
+for group, hosts in inventory_file.items():
+    print(f"Group: {group}") 
+    for host, attrs in hosts.get('hosts', {}).items(): 
+        print(f"  Name: {host}, IP Address: {attrs.get('ansible_host')}") 
 
 
-def load_inventory(inventory_file='hosts.yml'):
-    loader = DataLoader()
-    inventory = InventoryManager(loader=loader, sources=inventory_file)
-    return inventory
-
-
-def ping_all_hosts(inventory):
-    results_callback = ResultCallback()
-    variable_manager = VariableManager(
-        loader=inventory._loader, inventory=inventory)
-    task_queue_manager = TaskQueueManager(
-        inventory=inventory,
-        variable_manager=variable_manager,
-        loader=inventory._loader,
-        passwords={},
-        stdout_callback=results_callback,
-    )
-    ping_task = dict(
-        name="Ping all hosts",
-        action=dict(module="ping", args=""),
-        hosts='all',
-        roles=[],
-    )
-    task_queue_manager.run([ping_task])
-
-
-if __name__ == "__main__":
-    inventory_file = 'hosts.yml'
-    inventory = load_inventory(inventory_file)
-    print("Hosts and Ping Results:")
-    ping_all_hosts(inventory)
+ansible_runner.interface.run_command("export ANSIBLE_CONFIG=$(pwd)/ansible.cfg") 
+result = ansible_runner.interface.run_command("ansible all:localhost -m ping") 
+print("Results after pinging hosts:\n")
+print(result)
